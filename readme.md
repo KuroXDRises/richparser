@@ -6,7 +6,7 @@ reference: <a href="https://core.telegram.org/bots/api#rich-html-style">Rich HTM
 ## Installation
 
 ```bash
-pip install 
+pip install git+https://github.com/BreezeKun/richparser.git
 ```
 
 Or clone and import directly:
