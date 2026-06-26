@@ -64,46 +64,31 @@ class ParseText:
 
         return result, i
 
+    def _parse_inner(self, tokens, i):
+        tok = tokens[i]
+        tag, attrs, text = split_token(tok)
+
+        open_ = self.open_tag(tag, attrs)
+        close_ = self.close_tag(tag)
+
+        if text is not None:
+            return f"{open_}{text}{close_}", i + 1
+
+        if tag in TREE_TAGS:
+            return self.tree_parse(tok, tokens, i + 1)
+
+        if i + 1 < len(tokens):
+            inner, next_i = self._parse_inner(tokens, i + 1)
+            return f"{open_}{inner}{close_}", next_i
+
+        return open_, i + 1
+
     def parser(self):
         tokens = self.tokenize()
         i = 0
-
         while i < len(tokens):
-            tok = tokens[i]
-            tag_raw = tok.split("&")[0].split(":")[0]
-            tag = TAG_ALIASES.get(tag_raw, tag_raw)
-
-            if tag in TREE_TAGS:
-                html, i = self.tree_parse(tok, tokens, i + 1)
-                self.parsed += html
-                continue
-
-            tag, attrs, text = split_token(tok)
-
-            open_ = self.open_tag(tag, attrs)
-            close_ = self.close_tag(tag)
-
-            if text is None:
-                if i + 1 < len(tokens):
-                    next_tok = tokens[i + 1]
-
-                    next_tag_raw = next_tok.split("&")[0].split(":")[0]
-                    next_tag = TAG_ALIASES.get(next_tag_raw, next_tag_raw)
-
-                    if next_tag in TREE_TAGS:
-                        inner_html, i = self.tree_parse(next_tok, tokens, i + 2)
-                    else:
-                        n_tag, n_attrs, n_text = split_token(next_tok)
-                        inner_html = f"{self.open_tag(n_tag, n_attrs)}{n_text or ''}{self.close_tag(n_tag)}"
-                        i += 2
-                    self.parsed += f"{open_}{inner_html}{close_}"
-                    continue
-                else:
-                    self.parsed += open_
-            else:
-                self.parsed += f"{open_}{text}{close_}"
-
-            i += 1
+            html, i = self._parse_inner(tokens, i)
+            self.parsed += html
 
 
     def get_text(self, text:str)->str:
