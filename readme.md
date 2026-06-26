@@ -42,7 +42,6 @@ _tag
 |-------|--------|
 | `_b` | `<b>` |
 | `_h1` | `<h1>` |
-| `_section` | `<section>` |
 
 ---
 
@@ -102,7 +101,7 @@ Nesting can go as deep as needed
 ### Ordered list starting at 3
 
 ```python
-p.get_text("_ol&start=3_li:1_li:2")
+parser("_ol&start=3_li:1_li:2")
 ```
 
 ```html
@@ -117,7 +116,7 @@ p.get_text("_ol&start=3_li:1_li:2")
 ### Figure with image and caption
 
 ```python
-parser("_figure_img&src=a.jpg_figcaption:Hello")
+parse("_figure_img&src=a.jpg_figcaption:Hello")
 ```
 
 ```html
