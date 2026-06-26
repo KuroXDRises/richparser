@@ -84,7 +84,22 @@ class ParseText:
             close_ = self.close_tag(tag)
 
             if text is None:
-                self.parsed += open_
+                if i + 1 < len(tokens):
+                    next_tok = tokens[i + 1]
+
+                    next_tag_raw = next_tok.split("&")[0].split(":")[0]
+                    next_tag = TAG_ALIASES.get(next_tag_raw, next_tag_raw)
+
+                    if next_tag in TREE_TAGS:
+                        inner_html, i = self.tree_parse(next_tok, tokens, i + 2)
+                    else:
+                        n_tag, n_attrs, n_text = split_token(next_tok)
+                        inner_html = f"{self.open_tag(n_tag, n_attrs)}{n_text or ''}{self.close_tag(n_tag)}"
+                        i += 2
+                    self.parsed += f"{open_}{inner_html}{close_}"
+                    continue
+                else:
+                    self.parsed += open_
             else:
                 self.parsed += f"{open_}{text}{close_}"
 

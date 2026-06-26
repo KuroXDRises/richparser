@@ -63,7 +63,7 @@ def split_token(token: str):
 
     if colon:
         head = token[:colon.start()]
-        text = token[colon.end():]
+        text = token[colon.end():] or None
     else:
         head = token
         text = None
