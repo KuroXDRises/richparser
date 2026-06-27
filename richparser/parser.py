@@ -24,15 +24,24 @@ class ParseText:
         tokens: list[str],
         i: int,
     ) -> tuple[str, int]:
-        tag, attrs, _ = split_token(token)
+        tag, attrs, inline_text = split_token(token)
         allowed = TREE_RULES.get(tag, ())
 
-        items: list[str] = []
+        # If the token itself carries text (e.g. "li:some text"), treat it as
+        # the leading text node so child elements can still follow it.
+        items: list[str] = [inline_text] if inline_text else []
         caption: str | None = None
         summary: str | None = None
 
         while i < len(tokens):
             t = tokens[i]
+
+            # A leading "-" is an explicit break: stop consuming into this tree.
+            # The token is left in place (with "-" stripped) for the outer loop.
+            if t.startswith("-"):
+                tokens[i] = t[1:]   # strip the marker so callers parse it normally
+                break
+
             t_tag_raw = t.split("&")[0].split(":")[0]
             t_tag = TAG_ALIASES.get(t_tag_raw, t_tag_raw)
 
@@ -77,11 +86,11 @@ class ParseText:
         open_ = self.open_tag(tag, attrs)
         close_ = self.close_tag(tag)
 
-        if text is not None:
-            return f"{open_}{text}{close_}", i + 1
-
         if tag in TREE_TAGS:
             return self.tree_parse(tok, tokens, i + 1)
+
+        if text is not None:
+            return f"{open_}{text}{close_}", i + 1
         
         if i + 1 < len(tokens):
             inner, next_i = self._parse_inner(tokens, i + 1)
@@ -97,7 +106,17 @@ class ParseText:
             self.parsed += html
 
     def tokenize(self) -> list[str]:
-        return [t for t in self.text.split("_") if t]
+        import re
+        parts = re.split(r"([_\-])", self.text)
+        tokens: list[str] = []
+        sep = "_"
+        for part in parts:
+            if part in ("_", "-"):
+                sep = part
+            elif part:
+                tokens.append(("-" + part) if sep == "-" else part)
+                sep = "_"
+        return tokens
 
     def get_text(self, text: str) -> str:
         self.text = text

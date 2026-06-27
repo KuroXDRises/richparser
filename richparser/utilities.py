@@ -7,20 +7,29 @@ SELF_CLOSING: set[str] = {
 
 VOID_INPUT: str = "input"
 
+_INLINE: tuple[str, ...] = (
+    "input", "span", "b", "i", "s", "u", "a", "code",
+    "img", "br", "tg-spoiler", "tg-math", "tg-emoji", "tg-time",
+)
+
 TREE_RULES: dict[str, tuple[str, ...]] = {
     "ul":      ("li",),
     "ol":      ("li",),
+    "li":      _INLINE + ("ul", "ol", "p", "pre", "blockquote", "figure"),
     "table":   ("tr",),
     "tr":      ("td", "th"),
+    "td":      _INLINE + ("ul", "ol", "p", "figure"),
+    "th":      _INLINE + ("ul", "ol", "p", "figure"),
 
     "tg-collage":   ("img", "video", "figcaption"),
     "tg-slideshow": ("img", "video", "figcaption"),
 
     "figure":  ("img", "video", "audio", "tg-collage", "tg-slideshow", "figcaption"),
 
-    "details": ("summary", "p", "span", "ul", "ol", "table",
-                "b", "i", "s", "u", "a", "code", "pre",
-                "blockquote", "br", "hr", "img", "figure",
+    "details": ("summary",
+                "p", "span", "b", "i", "s", "u", "a", "code", "pre",
+                "blockquote", "br", "hr", "img",
+                "ul", "ol", "table", "figure",
                 "tg-spoiler", "tg-math", "tg-math-block",
                 "tg-thinking", "tg-map", "tg-emoji", "tg-time"),
 }
